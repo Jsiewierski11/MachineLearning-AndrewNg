@@ -62,10 +62,6 @@ Theta2_grad = zeros(size(Theta2));
 %               and Theta2_grad from Part 2.
 %
 
-% Add ones to the X data matrix 
-
-%Theta1 = [ones(hidden_layer_size, 1) Theta1];
-%Theta2 = [ones(hidden_layer_size, 1) Theta2];
 
 %Forward Feed
 a1 = [ones(m, 1) X];
@@ -78,22 +74,38 @@ a3 = sigmoid(z3);
 %Cost Function
 y_matrix = eye(num_labels)(y,:);
 J = sum( (-y_matrix .* log(a3) - ( (1 - y_matrix) .* log(1 - a3)) ), 2);
-
-
 J = (1/m) * sum(J);
 
+%Remove bias
+Theta1_NoBias = Theta1(:, 2:end);
+Theta2_NoBias = Theta2(:, 2:end);
+
+%Compute regularization
+regSum = ( sum(sumsq(Theta1_NoBias)) + sum(sumsq(Theta2_NoBias)) ) * (lambda/(2*m)) ;
+
+%Adding regularization to cost
+J = J + regSum;
 
 
+%%%Back propagation%%%
 
+%%Step1-3
+delta3 = a3 - y_matrix;
+delta2 = (delta3*Theta2) .* [ones(size(z2, 1), 1) sigmoidGradient(z2)];
 
+%%Step4
+Delta1 = zeros(size(Theta1));
+Delta2 = zeros(size(Theta2));
 
+Delta1 = delta2(:, 2:end)' * a1;
+Delta2 = delta3' * a2;
 
+%%Step5 - REGULARIZATION
+Theta1_grad = Theta1_grad + (1/m) * Delta1;
+Theta2_grad = Theta2_grad + (1/m) * Delta2;
 
-
-
-
-
-
+Theta1_grad(:, 2:end) = Theta1_grad(:, 2:end) + (lambda/m)*Theta1_NoBias;
+Theta2_grad(:, 2:end) = Theta2_grad(:, 2:end) + (lambda/m)*Theta2_NoBias;
 
 
 
